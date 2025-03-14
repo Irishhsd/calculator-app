@@ -23,8 +23,18 @@ export default function MyKeyboard() {
   };
 
   const handleOperationPress = (buttonValue: string) => {
+    if (buttonValue === "％") {
+      if (firstNumber !== "" && secondNumber !== "") {
+        // Si hay operación, no hacer nada hasta que se presione "="
+        return;
+      } else if (firstNumber !== "") {
+        // Si solo hay un número, convierte a porcentaje
+        setFirstNumber((parseFloat(firstNumber) / 100).toString());
+      }
+      return;
+    }
+  
     if (result !== null) {
-      // Si hay un resultado, usarlo como primer número y continuar operando
       setSecondNumber(result.toString());
       setFirstNumber("");
       setOperation(buttonValue);
@@ -35,7 +45,8 @@ export default function MyKeyboard() {
       setFirstNumber("");
     }
   };
-
+  
+  
   const clear = () => {
     setFirstNumber("");
     setSecondNumber("");
@@ -73,30 +84,43 @@ export default function MyKeyboard() {
 
   const getResult = () => {
     if (secondNumber === "" || firstNumber === "") return;
-    
+  
     let computedResult: number;
+    const num1 = parseFloat(secondNumber);
+    let num2 = parseFloat(firstNumber);
+  
+    // Si la operación es con porcentaje, ajustamos num2
+    if (operation === "+" || operation === "-") {
+      num2 = (num1 * num2) / 100; // Convierte B% a valor relativo de A
+    } else if (operation === "*") {
+      num2 = num2 / 100; // Convierte B% a decimal para multiplicación
+    } else if (operation === "/") {
+      num2 = num2 / 100; // Divide por porcentaje correcto
+    }
+  
     switch (operation) {
       case "+":
-        computedResult = parseFloat(secondNumber) + parseFloat(firstNumber);
+        computedResult = num1 + num2;
         break;
       case "-":
-        computedResult = parseFloat(secondNumber) - parseFloat(firstNumber);
+        computedResult = num1 - num2;
         break;
       case "*":
-        computedResult = parseFloat(secondNumber) * parseFloat(firstNumber);
+        computedResult = num1 * num2;
         break;
       case "/":
-        computedResult = parseFloat(secondNumber) / parseFloat(firstNumber);
+        computedResult = num1 / num2;
         break;
       default:
         return;
     }
-
-    setResult(computedResult);
+  
+    setResult(parseFloat(computedResult.toFixed(10))); // Evita errores de punto flotante
     setFirstNumber("");
     setSecondNumber("");
     setOperation("");
   };
+  
 
   return (
     <View style={Styles.viewBottom}>
@@ -110,7 +134,7 @@ export default function MyKeyboard() {
       >
         <Text style={Styles.screenSecondNumber}>
           {secondNumber}
-          <Text style={{ color: "purple", fontSize: 50, fontWeight: "500" }}>
+          <Text style={{ color: myColors.blue, fontSize: 50, fontWeight: "500" }}>
             {operation}
           </Text>
         </Text>
